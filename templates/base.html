@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>{% block title %}SmartSale — POS & Inventory{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+
+<body class="{% if settings and settings.theme == 'dark' %}dark-mode{% endif %}">
+
+{% if current_user.is_authenticated %}
+
+<!-- MOBILE TOGGLE -->
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-menu">
+
+        <!-- MAIN -->
+        <div class="menu-section">
+            <div class="menu-heading">Main</div>
+            <a href="{{ url_for('dashboard') }}" class="menu-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="mi-icon"><i class="fas fa-tachometer-alt"></i></span> Dashboard
+            </a>
+            <a href="{{ url_for('pos') }}" class="menu-item {% if request.endpoint == 'pos' %}active{% endif %}">
+                <span class="mi-icon"><i class="fas fa-cash-register"></i></span> Point of Sale
+            </a>
+        </div>
+
+        <!-- TRANSACTIONS -->
+        <div class="menu-section">
+            <div class="menu-heading">Transactions</div>
+            <a href="{{ url_for('returns_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-rotate-left"></i></span> Returns & Refunds
+            </a>
+        </div>
+
+        <!-- CUSTOMERS -->
+        <div class="menu-section">
+            <div class="menu-heading">Customers</div>
+            <a href="{{ url_for('customers_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-user-group"></i></span> Customer Directory
+            </a>
+        </div>
+
+        {% if current_user.role != 'cashier' %}
+
+        <!-- REPORTS -->
+        <div class="menu-section">
+            <div class="menu-heading">Reports</div>
+            <a href="{{ url_for('reports_dashboard') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-chart-column"></i></span> Reports Hub
+            </a>
+            <a href="{{ url_for('sales') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-file-invoice-dollar"></i></span> Sales Reports
+            </a>
+            <a href="{{ url_for('profit_loss_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-scale-balanced"></i></span> Profit & Loss
+            </a>
+            <a href="{{ url_for('expenses_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-receipt"></i></span> Expense Report
+            </a>
+        </div>
+
+        <!-- INVENTORY -->
+        <div class="menu-section">
+            <div class="menu-heading">Inventory</div>
+            <a href="{{ url_for('inventory') }}" class="menu-item {% if request.endpoint == 'inventory' %}active{% endif %}">
+                <span class="mi-icon"><i class="fas fa-box-open"></i></span> All Products
+            </a>
+            <a href="{{ url_for('categories_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-layer-group"></i></span> Categories
+            </a>
+            <a href="{{ url_for('suppliers_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-truck-fast"></i></span> Suppliers
+            </a>
+        </div>
+
+        <!-- FINANCE -->
+        <div class="menu-section">
+            <div class="menu-heading">Finance</div>
+            <a href="{{ url_for('expenses_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-wallet"></i></span> Expense Tracker
+            </a>
+            <a href="{{ url_for('profit_loss_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-chart-line"></i></span> Profit / Loss
+            </a>
+        </div>
+
+        <!-- MARKETING -->
+        <div class="menu-section">
+            <div class="menu-heading">Marketing</div>
+            <a href="{{ url_for('promotions_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-percent"></i></span> Promotions
+            </a>
+            <a href="{{ url_for('loyalty_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-star"></i></span> Loyalty Points
+            </a>
+        </div>
+
+        <!-- SYSTEM -->
+        <div class="menu-section">
+            <div class="menu-heading">System</div>
+            <a href="{{ url_for('full_audit') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-clock-rotate-left"></i></span> Audit Log
+            </a>
+            <a href="{{ url_for('shift_reports_page') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-cash-register"></i></span> Shift Reports
+            </a>
+            <a href="{{ url_for('backup_database') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-hard-drive"></i></span> Backup DB
+            </a>
+            <a href="{{ url_for('export_sales_data') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-file-csv"></i></span> Export CSV
+            </a>
+            <a href="{{ url_for('settings') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-sliders"></i></span> Settings
+            </a>
+        </div>
+
+        <!-- STAFF -->
+        <div class="menu-section">
+            <div class="menu-heading">Users</div>
+            <a href="{{ url_for('manage_users') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-users-gear"></i></span> Staff Management
+            </a>
+            <a href="{{ url_for('register') }}" class="menu-item">
+                <span class="mi-icon"><i class="fas fa-user-plus"></i></span> Add New User
+            </a>
+        </div>
+
+        {% endif %}
+
+        <div class="sidebar-divider"></div>
+
+        <div class="menu-section">
+            <a href="{{ url_for('logout') }}" class="menu-item text-danger">
+                <span class="mi-icon"><i class="fas fa-right-from-bracket"></i></span> Sign Out
+            </a>
+        </div>
+
+    </div>
+
+    <div class="sidebar-footer">
+        &#9679; SmartSale v1.0 &nbsp;·&nbsp; VU Project
+    </div>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-3 px-md-4">
+
+        <!-- BRAND -->
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+            <div class="brand-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="brand-text-wrap">
+                <div class="brand-name">SmartSale</div>
+                <div class="brand-sub">POS &amp; Inventory</div>
+            </div>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <i class="fas fa-ellipsis-v" style="color:rgba(255,255,255,0.5);"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+            <!-- LEFT LINKS -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-2 gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('pos') }}">
+                        <i class="fas fa-cash-register"></i> POS
+                    </a>
+                </li>
+                {% if current_user.role != 'cashier' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('inventory') }}">
+                        <i class="fas fa-box-open"></i> Inventory
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('reports_dashboard') }}">
+                        <i class="fas fa-chart-column"></i> Reports
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- RIGHT SIDE -->
+            <ul class="navbar-nav align-items-center gap-2 flex-row ms-auto">
+
+                <!-- Live Clock -->
+                <li class="nav-item d-none d-xl-flex align-items-center">
+                    <div class="nav-clock">
+                        <span class="clock-time" id="navClock">--:--:--</span>
+                        <span class="clock-date" id="navDate">--- --, ----</span>
+                    </div>
+                </li>
+
+                <div class="nav-divider d-none d-xl-block"></div>
+
+                <!-- Dark Mode Toggle -->
+                <li class="nav-item">
+                    <button class="dark-toggle" id="darkToggleBtn" title="Toggle Dark Mode" onclick="toggleDarkMode()">
+                        <i class="fas fa-moon" id="darkToggleIcon"></i>
+                    </button>
+                </li>
+
+                <!-- Notification Bell Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="notif-btn" href="#" id="notifDropdown"
+                       data-bs-toggle="dropdown" data-bs-offset="0,8"
+                       title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-dot" id="notifDot"></span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end notif-panel" id="notifPanel">
+
+                        <!-- Header -->
+                        <div class="notif-header">
+                            <div class="notif-header-left">
+                                <i class="fas fa-bell"></i>
+                                <span>System Alerts</span>
+                            </div>
+                            <span class="notif-count-badge" id="notifCountBadge">…</span>
+                        </div>
+
+                        <!-- Live Stats Grid -->
+                        <div class="notif-stats">
+                            <a class="ns-card c-green" href="/sales">
+                                <div class="ns-val" id="ns-revenue">—</div>
+                                <div class="ns-lbl">Today's Revenue</div>
+                            </a>
+                            <a class="ns-card c-purple" href="/inventory">
+                                <div class="ns-val" id="ns-products">—</div>
+                                <div class="ns-lbl">Products</div>
+                            </a>
+                            <a class="ns-card c-amber" href="/inventory">
+                                <div class="ns-val" id="ns-lowstock">—</div>
+                                <div class="ns-lbl">Low Stock</div>
+                            </a>
+                        </div>
+
+                        <!-- Alerts Section -->
+                        <div class="notif-section-label">Stock &amp; Activity Alerts</div>
+                        <div class="notif-scroll">
+                            <div id="notifList">
+                                <div class="notif-loading"><i class="fas fa-spinner fa-spin"></i>&nbsp; Loading system data...</div>
+                            </div>
+                        </div>
+
+                        <!-- System Status -->
+                        <div class="notif-status-row">
+                            <div class="status-dot"></div>
+                            <span class="status-text">System Online &nbsp;·&nbsp; Database: SQLite &nbsp;·&nbsp; SmartSale v1.0</span>
+                        </div>
+
+                        <!-- Footer Links -->
+                        <div class="notif-footer">
+                            <a href="{{ url_for('inventory') }}"><i class="fas fa-box-open" style="margin-right:4px;"></i>Stock Report</a>
+                            <a href="{{ url_for('sales') }}"><i class="fas fa-chart-line" style="margin-right:4px;"></i>Sales Report</a>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- Settings shortcut -->
+                <li class="nav-item d-none d-md-block">
+                    <a class="nav-icon-btn" href="{{ url_for('settings') }}" title="Settings">
+                        <i class="fas fa-sliders"></i>
+                    </a>
+                </li>
+
+                <div class="nav-divider"></div>
+
+                <!-- USER DROPDOWN -->
+                <li class="nav-item dropdown">
+                    <a class="user-trigger dropdown-toggle" href="#" id="userMenu"
+                       data-bs-toggle="dropdown" data-bs-offset="0,8"
+                       style="text-decoration:none;">
+
+                        {% if current_user.role == 'admin' %}
+                            <div class="user-avatar admin"><i class="fas fa-shield-halved"></i></div>
+                            <div class="d-none d-sm-block">
+                                <div class="user-info-name">{{ current_user.username|capitalize }}</div>
+                                <span class="role-badge admin">ADMIN</span>
+                            </div>
+                        {% elif current_user.role == 'manager' %}
+                            <div class="user-avatar manager"><i class="fas fa-user-tie"></i></div>
+                            <div class="d-none d-sm-block">
+                                <div class="user-info-name">{{ current_user.username|capitalize }}</div>
+                                <span class="role-badge manager">MANAGER</span>
+                            </div>
+                        {% else %}
+                            <div class="user-avatar cashier"><i class="fas fa-user"></i></div>
+                            <div class="d-none d-sm-block">
+                                <div class="user-info-name">{{ current_user.username|capitalize }}</div>
+                                <span class="role-badge cashier">CASHIER</span>
+                            </div>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('profile') }}">
+                                <i class="fas fa-id-card"></i> My Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('settings') }}">
+                                <i class="fas fa-sliders"></i> Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                <i class="fas fa-right-from-bracket"></i> Sign Out
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- 9-DOT QUICK ACCESS -->
+                {% if current_user.role != 'cashier' %}
+                <li class="nav-item dropdown">
+                    <a class="grid-btn" href="#" id="gridDropdown"
+                       role="button" data-bs-toggle="dropdown" data-bs-offset="0,8">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end quick-grid">
+                        <div class="quick-access-header">Quick Access</div>
+                        <div class="row g-1">
+                            <div class="col-4">
+                                <a href="{{ url_for('dashboard') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(59,130,246,0.15);">
+                                        <i class="fas fa-tachometer-alt" style="color:#60a5fa;"></i>
+                                    </div>
+                                    <span>Dashboard</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('pos') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(0,196,140,0.15);">
+                                        <i class="fas fa-cash-register" style="color:#00c48c;"></i>
+                                    </div>
+                                    <span>POS</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('inventory') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(108,71,255,0.15);">
+                                        <i class="fas fa-box-open" style="color:#a78bfa;"></i>
+                                    </div>
+                                    <span>Products</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('reports_dashboard') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(245,158,11,0.15);">
+                                        <i class="fas fa-chart-column" style="color:#fbbf24;"></i>
+                                    </div>
+                                    <span>Reports</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('expenses_page') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(248,113,113,0.15);">
+                                        <i class="fas fa-wallet" style="color:#f87171;"></i>
+                                    </div>
+                                    <span>Expenses</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('suppliers_page') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(52,211,153,0.15);">
+                                        <i class="fas fa-truck-fast" style="color:#34d399;"></i>
+                                    </div>
+                                    <span>Suppliers</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('customers_page') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(251,146,60,0.15);">
+                                        <i class="fas fa-user-group" style="color:#fb923c;"></i>
+                                    </div>
+                                    <span>Customers</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('register') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(167,139,250,0.15);">
+                                        <i class="fas fa-user-plus" style="color:#a78bfa;"></i>
+                                    </div>
+                                    <span>Add User</span>
+                                </a>
+                            </div>
+                            <div class="col-4">
+                                <a href="{{ url_for('settings') }}" class="quick-action-btn">
+                                    <div class="icon-wrapper" style="background:rgba(148,163,184,0.15);">
+                                        <i class="fas fa-sliders" style="color:#94a3b8;"></i>
+                                    </div>
+                                    <span>Settings</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{% endif %}
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-circle-info me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ===== FOOTER ===== -->
+{% if current_user.is_authenticated %}
+<footer class="main-footer">
+    <div class="footer-content">
+        <div class="footer-left">
+            <p>© 2025 <strong style="color:rgba(108,71,255,0.7);">SmartSale</strong> — Point of Sale &amp; Inventory System</p>
+        </div>
+        <div class="footer-center">
+            <p>
+                <i class="fas fa-lock"></i> Secure &nbsp;·&nbsp;
+                <i class="fas fa-bolt"></i> Real-time &nbsp;·&nbsp;
+                <i class="fas fa-database"></i> SQLite
+            </p>
+        </div>
+        <div class="footer-right">
+            <a href="#" onclick="alert('SmartSale POS\nVersion: 1.0.0\nFramework: Flask + SQLite\nDeveloped for VU Final Project')">About</a> ·
+            <a href="#" onclick="alert('Support\nContact your system administrator.')">Help</a> ·
+            <a href="#" onclick="alert('All data is securely stored on local server.')">Privacy</a>
+        </div>
+    </div>
+</footer>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/base.js') }}"></script>
+
+<script>
+    // Pass server-side theme settings to JavaScript
+    window.serverTheme = '{{ settings.theme if settings else "light" }}';
+    
+    // Re-sync theme from server settings on load
+    if (window.serverTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        const icon = document.getElementById('darkToggleIcon');
+        if (icon) {
+            icon.className = 'fas fa-sun';
+            icon.style.color = '#fbbf24';
+        }
+    }
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,358 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Receipt #{{ receipt.id }} - POS System{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/receipt.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="receipt-wrapper">
+    <div class="receipt-card">
+        <!-- Store Header -->
+        <div class="store-header">
+            <div class="store-name">
+                <i class="bi bi-shop"></i> POS SYSTEM
+            </div>
+            <div class="store-details">
+                <p><i class="bi bi-geo-alt-fill"></i> 123 Main Street, City</p>
+                <p><i class="bi bi-telephone-fill"></i> +92 300 1234567</p>
+                <p><i class="bi bi-envelope-fill"></i> info@possystem.com</p>
+            </div>
+        </div>
+
+        <!-- Receipt Title -->
+        <div class="receipt-title">
+            <h2><i class="bi bi-receipt"></i> SALES RECEIPT</h2>
+        </div>
+
+        <!-- Information Grid -->
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-hash"></i> Receipt Number</span>
+                <span class="info-value receipt-id">INV-{{ receipt.id }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-calendar3"></i> Date</span>
+                <span class="info-value">{{ receipt.date }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-clock"></i> Time</span>
+                <span class="info-value">{{ receipt.time }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-person-check"></i> SERVED BY</span>
+                <span class="info-value text-capitalize">
+                    {{ current_user.username }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="items-table">
+            <div class="items-header">
+                <span>Item</span>
+                <span class="text-center">Qty</span>
+                <span class="text-center">Price</span>
+                <span class="text-end">Total</span>
+            </div>
+            {% for item in receipt.items_list %}
+            <div class="item-row">
+                <span class="item-name">{{ item.name }}</span>
+                <span class="item-qty text-center">{{ item.quantity }}</span>
+                <span class="item-price text-center">{{ settings.currency_symbol if settings else 'PKR' }} {{ item.price|float|round(2) }}</span>
+                <span class="item-total text-end">{{ settings.currency_symbol if settings else 'PKR' }} {{ item.subtotal }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-row">
+                <span class="summary-label"><i class="bi bi-cart"></i> Subtotal:</span>
+                <span class="summary-value">{{ settings.currency_symbol if settings else 'PKR' }} {{ receipt.subtotal }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label"><i class="bi bi-tag"></i> Discount:</span>
+                <span class="summary-value" style="color:#dc2626;">-{{ settings.currency_symbol if settings else 'PKR' }} {{ discount_amount|default(0)|round(2) }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label"><i class="bi bi-percent"></i> Tax ({{ tax_rate|default(0) }}%):</span>
+                <span class="summary-value" style="color:#f59e0b;">+{{ settings.currency_symbol if settings else 'PKR' }} {{ tax_amount|default(0)|round(2) }}</span>
+            </div>
+            <div class="summary-row total">
+                <span class="summary-label"><i class="bi bi-currency-exchange"></i> GRAND TOTAL:</span>
+                <span class="summary-value" id="grandTotal">{{ settings.currency_symbol if settings else 'PKR' }} {{ receipt.total }}</span>
+            </div>
+        </div>
+
+        <!-- Payment Dual Card -->
+        <div class="payment-dual-card">
+            <div class="payment-card amount-paid">
+                <div class="payment-card-label">
+                    <i class="bi bi-cash-stack"></i> AMOUNT PAID
+                </div>
+                <div class="payment-card-value" id="amountPaid">
+                    {{ settings.currency_symbol if settings else 'PKR' }} {{ "%.2f"|format(cash_received if cash_received else receipt.total|float) }}
+                </div>
+            </div>
+            <div class="payment-card change-due">
+                <div class="payment-card-label">
+                    <i class="bi bi-arrow-return-left"></i> CHANGE DUE
+                </div>
+                <div class="payment-card-value" id="changeDue">
+                    {{ settings.currency_symbol if settings else 'PKR' }} {{ "%.2f"|format(change_due) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Loyalty Points Banner -->
+        <div class="loyalty-banner">
+            <div>
+                <i class="bi bi-star-fill"></i>
+                <span>You earned <strong id="loyaltyPoints">0</strong> loyalty points on this sale!</span>
+            </div>
+            <i class="bi bi-gift-fill"></i>
+        </div>
+
+        <!-- Thank You Message -->
+        <div class="thank-you">
+            <i class="bi bi-heart-fill text-danger"></i>
+            <h4>Thank You for Shopping With Us!</h4>
+            <p>Please come again • Have a great day!</p>
+        </div>
+
+        <!-- Digital Actions (WhatsApp & Email) - Visible on screen only -->
+        <div class="digital-actions">
+            <button class="btn-digital btn-whatsapp" onclick="shareViaWhatsApp()">
+                <i class="bi bi-whatsapp"></i> Send via WhatsApp
+            </button>
+            <button class="btn-digital btn-email" onclick="shareViaEmail()">
+                <i class="bi bi-envelope-fill"></i> Email Receipt
+            </button>
+            <button class="btn-digital btn-print" onclick="window.print()">
+                <i class="bi bi-printer-fill"></i> Print Receipt
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('pos') }}" class="btn-action btn-pos">
+                <i class="bi bi-plus-circle"></i> New Sale
+            </a>
+            <a href="{{ url_for('sales') }}" class="btn-action btn-dashboard">
+                <i class="bi bi-receipt"></i> Sales History
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- WhatsApp Modal -->
+<div id="whatsappModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:24px; padding:30px; max-width:380px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
+        <div style="font-size:48px; color:#25D366; margin-bottom:10px;"><i class="bi bi-whatsapp"></i></div>
+        <h5 style="font-weight:800; margin-bottom:5px; color:#1f2937;">Send via WhatsApp</h5>
+        <p style="color:#6b7280; font-size:13px; margin-bottom:20px;">Enter number with country code (e.g. 923001234567)</p>
+        <input type="tel" id="whatsappNumber" placeholder="923001234567"
+               style="width:100%; padding:13px 18px; border:2px solid #e5e7eb; border-radius:40px; font-size:15px; outline:none; margin-bottom:15px; text-align:center; box-sizing:border-box;"
+               onkeydown="if(event.key==='Enter') sendWhatsApp()">
+        <div style="display:flex; gap:10px;">
+            <button onclick="closeWhatsappModal()"
+                    style="flex:1; padding:12px; border:2px solid #e5e7eb; background:white; border-radius:40px; font-weight:600; cursor:pointer; font-size:14px;">Cancel</button>
+            <button onclick="sendWhatsApp()"
+                    style="flex:1; padding:12px; border:none; background:#25D366; color:white; border-radius:40px; font-weight:700; cursor:pointer; font-size:14px;">
+                <i class="bi bi-send-fill"></i> Send
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div id="emailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:24px; padding:30px; max-width:380px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
+        <div style="font-size:48px; color:#3b82f6; margin-bottom:10px;"><i class="bi bi-envelope-fill"></i></div>
+        <h5 style="font-weight:800; margin-bottom:5px; color:#1f2937;">Email Receipt</h5>
+        <p style="color:#6b7280; font-size:13px; margin-bottom:20px;">Enter customer's email address</p>
+        <input type="email" id="emailAddress" placeholder="customer@email.com"
+               style="width:100%; padding:13px 18px; border:2px solid #e5e7eb; border-radius:40px; font-size:15px; outline:none; margin-bottom:15px; text-align:center; box-sizing:border-box;"
+               onkeydown="if(event.key==='Enter') sendEmail()">
+        <div style="display:flex; gap:10px;">
+            <button onclick="closeEmailModal()"
+                    style="flex:1; padding:12px; border:2px solid #e5e7eb; background:white; border-radius:40px; font-weight:600; cursor:pointer; font-size:14px;">Cancel</button>
+            <button onclick="sendEmail()"
+                    style="flex:1; padding:12px; border:none; background:#3b82f6; color:white; border-radius:40px; font-weight:700; cursor:pointer; font-size:14px;">
+                <i class="bi bi-send-fill"></i> Send
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get currency symbol from settings
+    var currencySymbol = '{{ settings.currency_symbol if settings else "PKR" }}';
+    
+    // Variables
+    var customerAmount = 0;
+    var totalAmount = parseFloat('{{ receipt.total }}') || 0;
+    var taxRate = parseFloat('{{ tax_rate|default(0) }}') || 0;
+    var subtotal = parseFloat('{{ receipt.subtotal }}') || 0;
+    
+    // Calculate tax amount
+    var taxAmount = subtotal * (taxRate / 100);
+    var discountAmount = 0;
+    var grandTotal = totalAmount;
+    
+    // Update displayed values
+    var taxAmountElem = document.getElementById('taxAmount');
+    var grandTotalElem = document.getElementById('grandTotal');
+    var amountPaidElem = document.getElementById('amountPaid');
+    
+    if (taxAmountElem) taxAmountElem.innerHTML = currencySymbol + ' ' + taxAmount.toFixed(2);
+    if (grandTotalElem) grandTotalElem.innerHTML = currencySymbol + ' ' + grandTotal.toFixed(2);
+    if (amountPaidElem) amountPaidElem.innerHTML = currencySymbol + ' ' + grandTotal.toFixed(2);
+    
+    // Calculate loyalty points (1 point per 100 rupees)
+    var loyaltyPointsEarned = Math.floor(grandTotal / 100);
+    var loyaltyElem = document.getElementById('loyaltyPoints');
+    if (loyaltyElem) loyaltyElem.innerHTML = loyaltyPointsEarned;
+    
+    // FUNCTION TO ASK FOR CUSTOMER AMOUNT
+    window.askCustomerAmount = function() {
+        var amount = prompt("Enter amount received from customer (" + currencySymbol + "):", grandTotal.toFixed(2));
+        if (amount !== null) {
+            customerAmount = parseFloat(amount);
+            if (!isNaN(customerAmount) && customerAmount >= grandTotal) {
+                var changeDue = customerAmount - grandTotal;
+                var amountPaidElem = document.getElementById('amountPaid');
+                var changeDueElem = document.getElementById('changeDue');
+                if (amountPaidElem) amountPaidElem.innerHTML = currencySymbol + ' ' + customerAmount.toFixed(2);
+                if (changeDueElem) changeDueElem.innerHTML = currencySymbol + ' ' + changeDue.toFixed(2);
+                showToast('✅ Change Due: ' + currencySymbol + ' ' + changeDue.toFixed(2), 'success');
+            } else if (!isNaN(customerAmount) && customerAmount < grandTotal) {
+                alert("Insufficient amount! Total is " + currencySymbol + " " + grandTotal.toFixed(2));
+            }
+        }
+    };
+    
+    // WHATSAPP MODAL
+    window.shareViaWhatsApp = function() {
+        document.getElementById('whatsappModal').style.display = 'flex';
+        setTimeout(function() { document.getElementById('whatsappNumber').focus(); }, 100);
+    };
+    window.closeWhatsappModal = function() {
+        document.getElementById('whatsappModal').style.display = 'none';
+        document.getElementById('whatsappNumber').value = '';
+    };
+    window.sendWhatsApp = function() {
+        var raw = document.getElementById('whatsappNumber').value.trim();
+        if (!raw) { showToast('Please enter a phone number', 'error'); return; }
+        var clean = raw.replace(/[^0-9]/g, '');
+        if (clean.length < 10) { showToast('Enter full number with country code (e.g. 923001234567)', 'error'); return; }
+        var url = "https://web.whatsapp.com/send?phone=" + clean + "&text=" + encodeURIComponent(generateReceiptText());
+        window.open(url, '_blank');
+        closeWhatsappModal();
+        showToast('Opening WhatsApp Web...', 'success');
+    };
+
+    // EMAIL MODAL
+    window.shareViaEmail = function() {
+        document.getElementById('emailModal').style.display = 'flex';
+        setTimeout(function() { document.getElementById('emailAddress').focus(); }, 100);
+    };
+    window.closeEmailModal = function() {
+        document.getElementById('emailModal').style.display = 'none';
+        document.getElementById('emailAddress').value = '';
+    };
+    window.sendEmail = function() {
+        var email = document.getElementById('emailAddress').value.trim();
+        if (!email) { showToast('Please enter an email address', 'error'); return; }
+        var subject = "Receipt #INV-{{ receipt.id }} - POS System";
+        var body = generateReceiptText();
+        var gmailUrl = "https://mail.google.com/mail/?view=cm&to=" + encodeURIComponent(email) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+        window.open(gmailUrl, '_blank');
+        closeEmailModal();
+        showToast('Opening Gmail...', 'success');
+    };
+    
+    // GENERATE RECEIPT TEXT FOR SHARING
+    function generateReceiptText() {
+        var taxAmt = subtotal * (taxRate / 100);
+        var grandAmt = grandTotal;
+        
+        var text = "🏪 POS SYSTEM\n";
+        text += "================================\n";
+        text += "Receipt #INV-{{ receipt.id }}\n";
+        text += "Date: {{ receipt.date }} {{ receipt.time }}\n";
+        text += "Served By: {{ current_user.username }} ({{ current_user.role | upper }})\n";
+        text += "================================\n";
+        text += "ITEMS:\n";
+        
+        {% for item in receipt.items_list %}
+        text += "• {{ item.name }} x {{ item.quantity }} = {{ currencySymbol }} {{ item.subtotal }}\n";
+        {% endfor %}
+        
+        text += "================================\n";
+        text += "Subtotal: {{ currencySymbol }} {{ receipt.subtotal }}\n";
+        text += "Tax (" + taxRate + "%): {{ currencySymbol }} " + taxAmt.toFixed(2) + "\n";
+        text += "Grand Total: {{ currencySymbol }} " + grandAmt.toFixed(2) + "\n";
+        text += "================================\n";
+        text += "Thank you for shopping!\n";
+        text += "🏪 POS System\n";
+        
+        return text;
+    }
+    
+    // TOAST NOTIFICATION
+    function showToast(message, type) {
+        type = type || 'success';
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = type === 'success' ? '#10b981' : '#f59e0b';
+        toast.style.color = 'white';
+        toast.innerHTML = '<i class="bi ' + (type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill') + '"></i><span>' + message + '</span>';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3000);
+    }
+    
+    // Close modals on backdrop click
+    document.getElementById('whatsappModal').addEventListener('click', function(e) {
+        if (e.target === this) closeWhatsappModal();
+    });
+    document.getElementById('emailModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEmailModal();
+    });
+
+    // ===== FIXED: AUTO-PRINT OPTION (No arrow functions) =====
+    document.addEventListener('DOMContentLoaded', function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('print') === 'true') {
+            setTimeout(function() { 
+                window.print(); 
+            }, 500);
+        }
+        
+        // Ask for customer amount after loading
+        setTimeout(function() {
+            askCustomerAmount();
+        }, 500);
+    });
+    
+    // ===== FIXED: KEYBOARD SHORTCUTS (No arrow functions) =====
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            window.print();
+        }
+        if (e.key === 'F4') {
+            e.preventDefault();
+            var posUrl = "{{ url_for('pos') }}";
+            window.location.href = posUrl;
+        }
+    });
+</script>
+{% endblock %}

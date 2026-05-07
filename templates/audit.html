@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}System Audit Report — SmartSale{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/audit.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="audit-wrapper">
+
+    <!-- Page Header -->
+    <div class="audit-header">
+        <div class="audit-header-icon">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="audit-header-text">
+            <h2>Full System Audit</h2>
+            <p>Review all transactions and system activities across the platform.</p>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="audit-stats">
+        <div class="audit-stat-card navy">
+            <div class="audit-stat-icon"><i class="fas fa-receipt"></i></div>
+            <div>
+                <div class="audit-stat-label">Total Transactions</div>
+                <div class="audit-stat-value">{{ count }}</div>
+            </div>
+        </div>
+        <div class="audit-stat-card gold">
+            <div class="audit-stat-icon"><i class="fas fa-coins"></i></div>
+            <div>
+                <div class="audit-stat-label">Total Revenue</div>
+                <div class="audit-stat-value" style="font-size:20px;">PKR {{ "{:,.0f}".format(total_sales) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="audit-card">
+        <div class="audit-card-header">
+            <div class="audit-card-title">
+                <i class="fas fa-table"></i>
+                Transaction History
+            </div>
+            <div class="audit-controls">
+                <div class="audit-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="auditSearch" placeholder="Search by Cashier or ID...">
+                </div>
+                <button class="btn-print" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+        </div>
+
+        <div class="audit-table-wrap">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Trans ID</th>
+                        <th>Date & Time</th>
+                        <th>Cashier</th>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    {% for trans in transactions %}
+                    <tr>
+                        <td><span class="trans-id">#{{ trans.id }}</span></td>
+                        <td><span class="trans-date">{{ trans.transaction_date.strftime('%Y-%m-%d') }}<br>{{ trans.transaction_date.strftime('%H:%M') }}</span></td>
+                        <td>
+                            <span class="cashier-badge">
+                                <i class="fas fa-user-circle"></i>
+                                {{ trans.cashier.username if trans.cashier else 'Deleted' }}
+                            </span>
+                        </td>
+                        <td><span class="customer-name">{{ trans.customer.name if trans.customer else 'Walk-in' }}</span></td>
+                        <td>
+                            <span class="amount-cell">
+                                <span class="amount-currency">PKR</span>{{ "{:,.2f}".format(trans.total_amount) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="items-badge">
+                                <i class="fas fa-box"></i> {{ trans.items|length }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge">
+                                <i class="fas fa-check-circle"></i> Completed
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr class="empty-row">
+                        <td colspan="7">
+                            <i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;color:#cbd5e1;"></i>
+                            No transactions found in the database.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/audit.js') }}"></script>
+{% endblock %}

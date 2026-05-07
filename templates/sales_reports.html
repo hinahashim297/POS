@@ -1,0 +1,66 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Sales Reports — POS System{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fas fa-chart-bar text-primary me-2"></i>Sales Reports</h2>
+            <p class="text-muted">View and export your sales data</p>
+        </div>
+        <button class="btn btn-outline-secondary rounded-pill px-4" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 24px;">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold small text-muted">Report Type</label>
+                    <select id="reportType" class="form-select rounded-pill bg-light border-0">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">Start Date</label>
+                    <input type="date" id="startDate" class="form-control rounded-pill bg-light border-0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">End Date</label>
+                    <input type="date" id="endDate" class="form-control rounded-pill bg-light border-0">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100 rounded-pill shadow-sm" onclick="loadReport()">
+                        <i class="fas fa-chart-line me-2"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Card -->
+    <div class="card border-0 shadow-sm" style="border-radius: 24px; overflow: hidden;">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0"><i class="fas fa-table me-2 text-primary"></i>Sales Summary</h5>
+        </div>
+        <div class="card-body p-4">
+            <div id="reportContent">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-calendar-alt fa-3x mb-3 opacity-25"></i>
+                    <p>Select a date range and click Generate to view sales report.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/sales_reports.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sales_reports.css') }}">
+{% endblock %}

@@ -1,0 +1,126 @@
+﻿{% extends "base.html" %}
+{% block title %}Returns & Refunds - SmartSale POS{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/returns.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="returns-shell">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1><i class="bi bi-arrow-counterclockwise me-2"></i>Returns & Refunds</h1>
+            <p>Process product returns and manage customer refunds</p>
+        </div>
+        <button class="btn-new-return" onclick="openReturnModal()">
+            <i class="bi bi-plus-circle"></i> New Return
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--amber"><i class="bi bi-arrow-counterclockwise"></i></div>
+            <div>
+                <div class="stat-label">Total Returns</div>
+                <div class="stat-value" id="totalReturns">0</div>
+                <div class="stat-sub">All time</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--red"><i class="bi bi-cash-stack"></i></div>
+            <div>
+                <div class="stat-label">Total Refunded</div>
+                <div class="stat-value" id="totalRefund">PKR 0</div>
+                <div class="stat-sub">Amount returned</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--blue"><i class="bi bi-calendar-day"></i></div>
+            <div>
+                <div class="stat-label">Today's Returns</div>
+                <div class="stat-value" id="todayReturns">0</div>
+                <div class="stat-sub">Returns today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--green"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <div class="stat-label">Items Restocked</div>
+                <div class="stat-value" id="totalItems">0</div>
+                <div class="stat-sub">Units returned</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="table-card-header">
+            <h3><i class="bi bi-table me-2" style="color:#6c47ff;"></i>Returns History</h3>
+            <span id="returnCount" style="font-size:12px;color:#64748b;font-weight:700;">Loading...</span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="returns-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date & Time</th>
+                        <th>Transaction</th>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Refund Amount</th>
+                        <th>Reason</th>
+                        <th>Processed By</th>
+                    </tr>
+                </thead>
+                <tbody id="returnsList">
+                    <tr><td colspan="8" class="empty-state"><i class="bi bi-inbox"></i><p>Loading returns...</p></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Return Modal -->
+<div class="modal-overlay" id="returnModal">
+    <div class="modal-box">
+        <div class="modal-box-header">
+            <h2><i class="bi bi-arrow-counterclockwise me-2"></i>Process Return</h2>
+            <button class="modal-close" onclick="closeReturnModal()">&times;</button>
+        </div>
+        <div class="modal-box-body">
+            <div class="form-group">
+                <label class="form-label">Transaction ID *</label>
+                <input type="number" id="returnTransactionId" class="form-control" placeholder="Enter transaction ID (e.g. 20)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Product *</label>
+                <select id="returnProductId" class="form-control">
+                    <option value="">Select product</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quantity to Return *</label>
+                <input type="number" id="returnQuantity" class="form-control" min="1" placeholder="Enter quantity">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reason for Return</label>
+                <textarea id="returnReason" class="form-control" rows="2" placeholder="e.g. Damaged, Wrong item, Customer request..."></textarea>
+            </div>
+            <div class="refund-preview" id="returnPreview">
+                <i class="bi bi-info-circle"></i> Estimated refund: PKR 0.00
+            </div>
+        </div>
+        <div class="modal-footer-btns">
+            <button class="btn-cancel" onclick="closeReturnModal()">Cancel</button>
+            <button class="btn-process" onclick="processReturn()"><i class="bi bi-check-circle me-1"></i>Process Return</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/returns.js') }}"></script>
+{% endblock %}

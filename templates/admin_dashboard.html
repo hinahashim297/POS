@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — SmartSale POS & Inventory{% endblock %}
+
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-shell">
+
+    <!-- Top Bar -->
+    <header class="dash-topbar glass-panel">
+        <div class="dash-brand">
+            <span class="dash-brand-mark"><i class="bi bi-graph-up-arrow"></i></span>
+            <div>
+                <div class="dash-brand-title">SmartSale Executive</div>
+                <div class="dash-brand-sub">POS & Inventory Management System</div>
+            </div>
+        </div>
+        <div class="dash-search">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search products..." id="globalSearch" onkeyup="searchProducts()">
+        </div>
+        <div class="dash-topbar-meta">
+            <span class="dash-pill" onclick="showDateDetails()"><i class="bi bi-calendar3 me-1"></i><span id="currentDate"></span></span>
+            <span class="dash-pill dash-pill--accent" onclick="showTimeDetails()"><i class="bi bi-clock me-1"></i><span id="currentTime"></span></span>
+            <button class="dash-icon-btn" onclick="showNotifications()"><i class="bi bi-bell"></i></button>
+            <button class="dash-icon-btn" onclick="window.location.href='{{ url_for('logout') }}'"><i class="bi bi-box-arrow-right"></i></button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="dash-hero glass-panel">
+        <div class="dash-hero-copy">
+            <span style="text-transform:uppercase;letter-spacing:2px;font-weight:800;color:#e8a020;display:block;margin-bottom:8px;font-size:11px;">
+                System Intelligence Overview
+            </span>
+            <h1 class="dash-hero-title">
+                Welcome back, <span class="text-gradient">{{ session.get('username', 'Administrator') }}</span>
+            </h1>
+            <p class="dash-hero-lead">
+                Monitoring live retail operations, inventory health, and terminal performance across all branches.
+            </p>
+            <div class="dash-hero-tags" style="margin-top: 18px;">
+                <span><i class="bi bi-shield-lock"></i> Secure System</span>
+                <span><i class="bi bi-activity"></i> Network: Optimal</span>
+                <span><i class="bi bi-check-circle"></i> Sync: Live</span>
+            </div>
+        </div>
+        <div class="dash-stat-blob">
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;">
+                <span class="live-pulse"></span>
+                <span style="font-size:10px;font-weight:800;color:#e8a020;text-transform:uppercase;letter-spacing:1px;">Live</span>
+            </div>
+            <div class="dash-blob-hint" style="font-weight:800;letter-spacing:1px;color:#a8bfd8;margin-bottom:6px;">TODAY'S REVENUE</div>
+            <div class="dash-blob-value">
+                <span>PKR</span>
+                <span id="revenueCounter">0</span>
+            </div>
+            <div id="revenueChange" class="dash-blob-hint">
+                <i class="bi bi-graph-up-arrow"></i> <span id="revenuePercent">+0%</span>
+                <span style="color:#a8bfd8;font-weight:400;font-size:11px;">vs yesterday</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <button class="action-btn action-btn--primary" onclick="window.location.href='{{ url_for('inventory') }}'"><i class="bi bi-plus-circle"></i> Add Product</button>
+        <button class="action-btn" onclick="window.location.href='{{ url_for('pos') }}'"><i class="bi bi-cart3"></i> New Sale</button>
+        <button class="action-btn" onclick="window.location.href='{{ url_for('reports_dashboard') }}'"><i class="bi bi-file-earmark-bar-graph"></i> Reports</button>
+        <button class="action-btn" onclick="window.location.href='{{ url_for('customers_page') }}'"><i class="bi bi-people"></i> Customers</button>
+        <button class="action-btn" onclick="showCashiersList()"><i class="bi bi-person-plus"></i> Add Cashier</button>
+        <button class="action-btn action-btn--secondary" onclick="exportData()"><i class="bi bi-download"></i> Export Data</button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card" onclick="showTodaySalesDetails()">
+            <div class="kpi-icon kpi-icon--cyan"><i class="bi bi-currency-exchange"></i></div>
+            <div>
+                <div class="kpi-label">Today's Revenue</div>
+                <div class="kpi-value" id="todayRevenue">PKR 0</div>
+                <div class="kpi-trend" id="todaySalesCount">0 sales today</div>
+            </div>
+        </div>
+        <div class="kpi-card" onclick="window.location.href='{{ url_for('inventory') }}'">
+            <div class="kpi-icon kpi-icon--violet"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <div class="kpi-label">Total Products</div>
+                <div class="kpi-value" id="productCount">0</div>
+            </div>
+        </div>
+        <div class="kpi-card" onclick="showAllUsers()">
+            <div class="kpi-icon kpi-icon--blue"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="kpi-label">Team Members</div>
+                <div class="kpi-value" id="userCount">0</div>
+            </div>
+        </div>
+        <div class="kpi-card" onclick="showLowStockDetails()">
+            <div class="kpi-icon kpi-icon--amber"><i class="bi bi-exclamation-triangle"></i></div>
+            <div>
+                <div class="kpi-label">Low Stock Items</div>
+                <div class="kpi-value" id="criticalStock">0</div>
+            </div>
+        </div>
+        <div class="kpi-card" onclick="showProfitLossDetails()">
+            <div class="kpi-icon kpi-icon--green"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+                <div class="kpi-label">Net Profit (Today)</div>
+                <div class="kpi-value" id="netProfit">PKR 0</div>
+                <div class="kpi-trend" id="profitMargin">Margin: 0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Best Selling + Chart -->
+    <div class="dash-mid-grid">
+        <div class="top-products-card glass-panel">
+            <h3><i class="bi bi-trophy-fill me-2" style="color:#e8a020;"></i>Best Selling Products</h3>
+            <div class="product-list" id="bestSellingProducts">
+                <div class="empty-state">Loading...</div>
+            </div>
+            <div style="margin-top:14px;padding-top:10px;border-top:1px solid #eef2f8;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;font-weight:700;">
+                    <span>Total Units: <strong id="totalUnitsSold">0</strong></span>
+                    <span>Revenue: <strong id="totalRevenue">PKR 0</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-card glass-panel">
+            <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                <h3 style="margin-bottom:0;border:none;padding:0;"><i class="bi bi-activity me-2"></i>Sales Performance</h3>
+                <div style="display:flex;gap:6px;">
+                    <button class="period-btn active" data-days="7" onclick="loadSalesChart(7)">7 Days</button>
+                    <button class="period-btn" data-days="30" onclick="loadSalesChart(30)">30 Days</button>
+                    <button class="period-btn" data-days="90" onclick="loadSalesChart(90)">90 Days</button>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts & Activity -->
+    <div class="alerts-grid">
+        <div class="alerts-card glass-panel">
+            <h3><i class="bi bi-exclamation-octagon me-2" style="color:#dc2626;"></i>Low Stock Alerts</h3>
+            <div id="lowStockAlerts">Checking...</div>
+        </div>
+        <div class="alerts-card glass-panel">
+            <h3><i class="bi bi-lightning-charge me-2" style="color:#e8a020;"></i>Recent Activity</h3>
+            <div id="recentActivity">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="transactions-card glass-panel">
+        <div class="transactions-header">
+            <h3 style="margin-bottom:0;border:none;padding:0;"><i class="bi bi-receipt me-2"></i>Recent Transactions</h3>
+            <button class="action-btn" onclick="window.location.href='/sales'">View All <i class="bi bi-arrow-right"></i></button>
+        </div>
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date & Time</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Cashier</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionList">
+                    <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Details</h2>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">Loading...</div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+{% endblock %}

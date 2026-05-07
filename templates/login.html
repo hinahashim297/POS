@@ -1,0 +1,79 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Login - POS System{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        
+        <!-- ===== HEADER SECTION ===== -->
+        <div class="login-brand-icon">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="login-header">
+            <h2>Welcome Back!</h2>
+            <p>Sign in to SmartSale POS System</p>
+        </div>
+        
+        <!-- ===== ALERT MESSAGES (Hidden by default) ===== -->
+        <div id="errorAlert" class="alert alert-error" style="display: none;"></div>
+        <div id="successAlert" class="alert alert-success" style="display: none;"></div>
+        
+        <!-- ===== LOGIN FORM ===== -->
+        <form id="loginForm">
+            <!-- Username field -->
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       placeholder="Enter your username"
+                       autocomplete="off"
+                       autofocus>
+            </div>
+            
+            <!-- Password field -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       placeholder="Enter your password">
+            </div>
+            
+            <!-- Login button -->
+            <button type="submit" class="login-btn" id="loginBtn">
+                Login
+            </button>
+        </form>
+        
+        <!-- ===== LINKS SECTION ===== -->
+        <div class="links-section">
+            <!-- Forgot Password link (points to new page) -->
+            <a href="{{ url_for('forgot_password') }}" id="forgotLink">Forgot Password?</a>
+            <span class="separator">|</span>
+            <!-- Register link (points to new page) -->
+            <a href="{{ url_for('register') }}" id="registerLink">Register</a>
+        </div>
+        
+        <!-- ===== DEMO CREDENTIALS ===== -->
+        <div class="demo-box">
+            <strong>Demo:</strong> admin / admin123 &nbsp; | &nbsp; cashier / cashier123
+        </div>
+        
+        <!-- ===== FOOTER ===== -->
+        <div class="login-footer">
+            <p>Â© 2026 POS & Inventory System. All rights reserved.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+{% endblock %}

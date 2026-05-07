@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Cashier Dashboard - POS System{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cashier_dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Banner with Live Clock -->
+    <div class="welcome-banner">
+        <h1><i class="bi bi-person-circle me-2"></i> Welcome, {{ user.username|capitalize }}!</h1>
+        <p><i class="bi bi-calendar3"></i> {{ datetime.now().strftime('%A, %B %d, %Y') }}</p>
+        <div class="live-clock">
+            <i class="bi bi-clock"></i>
+            <span class="time-number" id="liveTime">{{ datetime.now().strftime('%I:%M:%S %p') }}</span>
+        </div>
+    </div>
+
+    <!-- Three Column Grid: Announcement + Progress + Low Stock -->
+    <div class="three-col-grid">
+        <!-- Announcement Card -->
+        <div class="glass-card announcement-card">
+            <h5><i class="bi bi-megaphone-fill"></i> Manager's Note</h5>
+            <p class="announcement-text" id="managerAnnouncement">"Welcome to your shift! Have a productive day."</p>
+            <div class="announcement-date" id="announcementDate">
+                <i class="bi bi-calendar"></i> Today's Note
+            </div>
+        </div>
+
+        <!-- Sales Target Progress -->
+        <div class="glass-card progress-card">
+            <h5><i class="bi bi-graph-up"></i> Shift Goal Progress</h5>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     id="targetProgressBar"
+                     role="progressbar"
+                     style="width: 0%;"></div>
+            </div>
+            <div class="progress-stats">
+                <small class="text-secondary" id="currentSales">{{ settings.currency_symbol if settings else 'PKR' }} 0</small>
+                <small class="progress-target" id="targetAmount">Target: {{ settings.currency_symbol if settings else 'PKR' }} 20,000</small>
+                <small style="color: var(--accent); font-weight: 700;" id="progressPercentage">0%</small>
+            </div>
+            <div style="margin-top: 12px;">
+                <small class="text-muted" id="targetMessage">✨ You need {{ settings.currency_symbol if settings else 'PKR' }} 20,000 more to reach today's goal!</small>
+            </div>
+        </div>
+
+        <!-- Low Stock Quick View Widget -->
+        <div class="glass-card lowstock-card">
+            <h5><i class="bi bi-exclamation-triangle-fill"></i> Low Stock Alert</h5>
+            <div class="lowstock-list" id="lowStockWidget">
+                <div class="lowstock-item">
+                    <span class="lowstock-name">Loading...</span>
+                    <span class="lowstock-qty">--</span>
+                </div>
+            </div>
+            <div class="lowstock-warning">
+                <i class="bi bi-info-circle"></i> Items with less than 5 units left
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Today's Sales</h4>
+                <div class="stat-number" id="todaySales">{{ settings.currency_symbol if settings else 'PKR' }} 0.00</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-boxes"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Products in Stock</h4>
+                <div class="stat-number" id="totalProducts">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">
+        <i class="bi bi-lightning-charge"></i>
+        <span>Quick Actions</span>
+    </div>
+    <div class="actions-grid">
+        <a href="{{ url_for('pos') }}" class="action-card" id="newSaleBtn">
+            <div class="action-icon"><i class="bi bi-cart-plus"></i></div>
+            <div class="action-title">New Sale</div>
+            <div class="action-desc">Process customer transactions instantly</div>
+            <span class="shortcut-badge"><i class="bi bi-keyboard"></i> F1</span>
+        </a>
+        <a href="#" class="action-card" onclick="printLastReceipt(); return false;">
+            <div class="action-icon"><i class="bi bi-receipt"></i></div>
+            <div class="action-title">Print Receipt</div>
+            <div class="action-desc">Reprint last transaction</div>
+            <span class="shortcut-badge"><i class="bi bi-keyboard"></i> Ctrl+P</span>
+        </a>
+        <a href="#" class="action-card" onclick="openEndShiftModal(); return false;">
+            <div class="action-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="action-title">End Shift</div>
+            <div class="action-desc">Cash tally & shift closure</div>
+            <span class="shortcut-badge"><i class="bi bi-keyboard"></i> Shift+E</span>
+        </a>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="activity-card">
+        <div class="activity-header">
+            <h3><i class="bi bi-clock-history"></i> Recent Transactions</h3>
+            <span class="badge-count" id="transactionCount">0 today</span>
+        </div>
+        <div class="activity-list" id="recentActivity">
+            <div class="empty-state">
+                <i class="bi bi-receipt"></i>
+                <p>Loading transactions...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pro Tips -->
+    <div class="section-title">
+        <i class="bi bi-lightbulb"></i>
+        <span>Pro Tips for Faster Checkout</span>
+    </div>
+    <div class="tips-grid">
+        <div class="tip-card">
+            <div class="tip-icon"><i class="bi bi-upc-scan"></i></div>
+            <div class="tip-title">Scan Barcodes</div>
+            <div class="tip-text">Use barcode scanner for instant product search</div>
+            <span class="tip-shortcut">Ctrl+F</span>
+        </div>
+        <div class="tip-card">
+            <div class="tip-icon"><i class="bi bi-mouse2"></i></div>
+            <div class="tip-title">Quick Add</div>
+            <div class="tip-text">Click products directly to add to cart</div>
+            <span class="tip-shortcut">Double-click</span>
+        </div>
+        <div class="tip-card">
+            <div class="tip-icon"><i class="bi bi-keyboard"></i></div>
+            <div class="tip-title">Keyboard Shortcuts</div>
+            <div class="tip-text">F1 for new sale, ESC to clear cart</div>
+            <span class="tip-shortcut">F1, ESC, Shift+E</span>
+        </div>
+    </div>
+</div>
+
+<!-- End Shift Modal -->
+<div id="endShiftModal" class="modal-overlay" style="display: none;">
+    <div class="shift-modal">
+        <div class="shift-modal-header">
+            <h3><i class="bi bi-cash-stack"></i> End Shift - Cash Tally</h3>
+        </div>
+        <div class="shift-modal-body">
+            <p style="margin-bottom: 10px; color: var(--text-secondary); font-size: 14px;">Enter the cash amount in your drawer:</p>
+            <input type="number" id="cashAmountInput" class="cash-input" placeholder="Enter amount" step="0.01">
+            <div class="shift-summary" id="shiftSummary">
+                <div><span>💰 System Sales Today:</span><span id="systemSalesAmount">{{ settings.currency_symbol if settings else 'PKR' }} 0.00</span></div>
+                <div><span>📊 Total Transactions:</span><span id="totalTransCount">0</span></div>
+                <div id="differenceRow" style="display: none;">
+                    <span>📈 Difference:</span>
+                    <span id="differenceAmount" style="font-weight: 700;"></span>
+                </div>
+            </div>
+        </div>
+        <div class="shift-modal-footer">
+            <button class="btn-secondary" onclick="closeEndShiftModal()">Cancel</button>
+            <button class="btn-primary" onclick="submitShiftTally()">Submit & End Shift</button>
+        </div>
+    </div>
+</div>
+
+<!-- Shift Report Result Modal -->
+<div id="shiftResultModal" class="modal-overlay" style="display:none;">
+    <div class="shift-modal" style="max-width:440px;">
+        <div class="shift-modal-header" style="background:linear-gradient(135deg,#6c47ff,#4f2fe8);">
+            <h3><i class="bi bi-clipboard2-check"></i> Shift Closure Report</h3>
+        </div>
+        <div class="shift-modal-body" style="padding:20px 22px;">
+            <p style="font-size:12px;color:#64748b;margin-bottom:14px;">
+                <i class="bi bi-database-check text-success"></i>
+                Report saved to database successfully.
+            </p>
+            <div class="shift-summary" style="gap:10px;">
+                <div><span>💰 System Sales Today:</span><span id="sr_systemSales">—</span></div>
+                <div><span>💵 Cash in Drawer:</span><span id="sr_cashDrawer">—</span></div>
+                <div><span>📈 Difference:</span><span id="sr_difference" style="font-weight:700;">—</span></div>
+                <div><span>📊 Variance:</span><span id="sr_variance">—</span></div>
+                <div><span>🧾 Total Transactions:</span><span id="sr_transactions">—</span></div>
+                <div><span>📅 Date & Time:</span><span id="sr_datetime" style="font-size:12px;">—</span></div>
+            </div>
+            <div id="sr_status" style="margin-top:14px;font-size:13px;font-weight:600;text-align:center;padding:10px;background:#f8faff;border-radius:10px;"></div>
+        </div>
+        <div class="shift-modal-footer" style="justify-content:center;">
+            <button class="btn-primary" style="min-width:160px;" onclick="closeShiftResultAndLogout()">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/cashier_dashboard.js') }}"></script>
+{% endblock %}

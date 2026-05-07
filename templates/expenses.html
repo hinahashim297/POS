@@ -1,0 +1,110 @@
+﻿{% extends "base.html" %}
+{% block title %}Expense Tracker - POS System{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/expenses.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="expense-container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h2>
+            <i class="bi bi-cash-coin"></i>
+            Expense Tracker
+        </h2>
+        <button class="btn-add-expense" data-bs-toggle="modal" data-bs-target="#expenseModal" onclick="resetExpenseForm()">
+            <i class="bi bi-plus-circle"></i> Add Expense
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value" id="totalExpenses">0</div>
+            </div>
+            <div class="stat-icon danger"><i class="bi bi-graph-down-arrow"></i></div>
+        </div>
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">This Month</div>
+                <div class="stat-value" id="monthExpenses">PKR 0</div>
+            </div>
+            <div class="stat-icon warning"><i class="bi bi-calendar-month"></i></div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="table-card-header">
+            <i class="bi bi-receipt-cutoff"></i>
+            <h5>All Expenses</h5>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Amount (PKR)</th>
+                        <th>Description</th>
+                        <th>Added By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="expensesList">
+                    <tr><td colspan="6" class="empty-state">
+                        <i class="bi bi-hourglass-split"></i>
+                        <p>Loading expenses...</p>
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cash-coin me-2"></i> Add Expense</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="expenseId">
+                <div class="mb-3">
+                    <label class="form-label">Category <span style="color:#e11d48;">*</span></label>
+                    <select id="expenseCategory" class="form-select">
+                        <option>Electricity</option>
+                        <option>Rent</option>
+                        <option>Salary</option>
+                        <option>Maintenance</option>
+                        <option>Marketing</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Amount (PKR) <span style="color:#e11d48;">*</span></label>
+                    <input type="number" id="expenseAmount" class="form-control" step="0.01" placeholder="Enter amount">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="expenseDescription" class="form-control" rows="2" placeholder="Optional description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn-modal-save" onclick="saveExpense()"><i class="bi bi-check-lg me-1"></i> Save Expense</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/expenses.js') }}"></script>
+{% endblock %}

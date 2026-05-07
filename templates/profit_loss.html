@@ -1,0 +1,122 @@
+﻿{% extends "base.html" %}
+{% block title %}Profit/Loss Report - POS System{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profit_loss.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="container plr-page">
+
+    <!-- Header -->
+    <div class="plr-header">
+        <div>
+            <h1 class="plr-title">&#128200; Profit &amp; Loss Report</h1>
+            <p class="plr-subtitle">Track revenue, expenses, and net profit across any date range</p>
+        </div>
+        <div class="header-actions" id="exportButtons" style="display:none;">
+            <button class="btn-base btn-pdf" onclick="exportPDF()">
+                &#128196; Export PDF
+            </button>
+            <button class="btn-base btn-excel" onclick="exportExcel()">
+                &#128202; Export Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label class="filter-label">Start date</label>
+            <input type="date" id="reportStart" class="filter-input">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">End date</label>
+            <input type="date" id="reportEnd" class="filter-input">
+        </div>
+        <button class="btn-base btn-primary" onclick="loadReport()">
+            &#9889; Generate Report
+        </button>
+        <button class="btn-base" onclick="loadComparison()" id="btnCompare" style="display:none;">
+            &#8651; Compare Period
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+        <p class="loading-text">Crunching the numbers...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="errorMessage" class="error-msg">
+        &#9888; <span id="errorText"></span>
+    </div>
+
+    <!-- Report Content -->
+    <div id="reportContent" style="display:none;">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-green">&#128200;</div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value green" id="totalSales">PKR 0.00</div>
+                <div id="compareSales"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-red">&#128202;</div>
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value red" id="totalExpenses">PKR 0.00</div>
+                <div id="compareExpenses"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-purple">&#9878;</div>
+                <div class="stat-label">Net Profit / Loss</div>
+                <div class="stat-value purple" id="netProfit">PKR 0.00</div>
+                <div id="compareProfit"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-amber">&#37;</div>
+                <div class="stat-label">Profit Margin</div>
+                <div class="stat-value amber" id="profitMargin">0%</div>
+                <div id="compareMargin"></div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+            <div class="chart-card" id="chartContainer">
+                <div class="chart-title">
+                    <span class="ctdot"></span> Daily Revenue vs Expenses
+                </div>
+                <canvas id="profitChart"></canvas>
+                <div class="chart-legend">
+                    <div class="leg-item"><span class="leg-dot" style="background:#10b981;"></span> Revenue</div>
+                    <div class="leg-item"><span class="leg-dot" style="background:#ef4444;"></span> Expenses</div>
+                </div>
+                <p class="chart-note" id="chartNote"></p>
+            </div>
+            <div class="chart-card" id="expenseBreakdownContainer">
+                <div class="chart-title">
+                    <span class="ctdot" style="background:#f59e0b;"></span> Top Expense Breakdown
+                </div>
+                <canvas id="expenseChart"></canvas>
+                <ul class="expense-list" id="expenseList"></ul>
+            </div>
+        </div>
+
+    </div><!-- /reportContent -->
+</div>
+</div>
+
+<script>
+    var currencySymbol = '{{ settings.currency_symbol if settings else "PKR" }}';
+</script>
+<script src="{{ url_for('static', filename='js/profit_loss.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,11 @@
+﻿let promotions=[];
+async function loadPromotions(){ const res=await fetch('/api/promotions'); promotions=await res.json(); document.getElementById('promotionsList').innerHTML=promotions.map(p=>`<tr><td>${escapeHtml(p.name)}</td><td>${p.discount_type=='percentage'?p.discount_value+'%':'PKR '+p.discount_value}</td><td>${p.start_date}</td><td>${p.end_date}</td><td>${p.is_active?'<span class="badge bg-success">Active</span>':'<span class="badge bg-secondary">Inactive</span>'}</td><td><button class="btn btn-sm btn-outline-warning" onclick="togglePromotion(${p.id})"><i class="fas fa-power-off"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deletePromotion(${p.id})"><i class="fas fa-trash"></i></button></td></tr>`).join(''); }
+function resetPromotionForm(){ document.getElementById('promotionId').value=''; document.getElementById('promotionName').value=''; document.getElementById('promotionType').value='percentage'; document.getElementById('promotionValue').value=''; document.getElementById('startDate').value=''; document.getElementById('endDate').value=''; }
+async function savePromotion(){ const data={ name:document.getElementById('promotionName').value, discount_type:document.getElementById('promotionType').value, discount_value:parseFloat(document.getElementById('promotionValue').value), start_date:document.getElementById('startDate').value, end_date:document.getElementById('endDate').value };
+    if(!data.name||!data.discount_value){ alert('Please fill all fields'); return; }
+    const res=await fetch('/api/promotions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('promotionModal')).hide(); loadPromotions(); alert('Promotion added!'); } else alert('Error'); }
+async function togglePromotion(id){ await fetch(`/api/promotions/${id}/toggle`,{method:'POST'}); loadPromotions(); }
+async function deletePromotion(id){ if(confirm('Delete promotion?')){ await fetch(`/api/promotions/${id}`,{method:'DELETE'}); loadPromotions(); } }
+function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+loadPromotions();

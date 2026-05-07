@@ -1,0 +1,85 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Register - POS System{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card card-enter">
+        <div class="avatar-circle">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <h2 class="auth-title">Create Account</h2>
+        <p class="subtitle">Fill in the details to register a new user</p>
+
+        <div id="message" class="alert" style="display: none;"></div>
+
+        <div class="info-box">
+            <i class="fas fa-shield-alt"></i>
+            {% if current_user.is_admin() %}
+                You can create <strong>Admin</strong>, <strong>Manager</strong>, or <strong>Cashier</strong> accounts.
+            {% elif current_user.is_manager() %}
+                You can create <strong>Cashier</strong> accounts only. (Only Admin can create Manager or Admin)
+            {% else %}
+                You can create <strong>Cashier</strong> accounts only.
+            {% endif %}
+        </div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" placeholder="Enter username" required>
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" placeholder="Create password" required>
+                    <i class="fas fa-lock"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="confirm" placeholder="Re-enter password" required>
+                    <i class="fas fa-lock"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <div class="input-wrapper">
+                    <select id="role" required>
+                        <option value="cashier">Cashier</option>
+                        {% if current_user.is_admin() %}
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                        {% endif %}
+                    </select>
+                    <i class="fas fa-user-tag"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="registerBtn">
+                Register User
+            </button>
+        </form>
+
+        <div class="divider"></div>
+
+        <a href="{{ url_for('dashboard') }}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}

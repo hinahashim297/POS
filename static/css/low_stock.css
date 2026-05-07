@@ -1,0 +1,39 @@
+﻿    .table th, .table td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+    .badge.bg-warning {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+    }
+    .badge.bg-danger {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+    .badge.bg-light {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+    }
+    .btn-outline-primary:hover {
+        background-color: #6c47ff;
+        border-color: #6c47ff;
+        color: white;
+    }
+    @media (max-width: 768px) {
+        .table th, .table td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+        }
+        .badge.px-3.py-2 {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem !important;
+        }
+    }
+
+/* ===== ENHANCED RESPONSIVE - LOW STOCK ===== */
+@media (max-width: 768px) {
+    .ls-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .table-responsive { overflow-x: auto; }
+    table { min-width: 480px; }
+    table th, table td { padding: 7px 9px; font-size: 12px; }
+}

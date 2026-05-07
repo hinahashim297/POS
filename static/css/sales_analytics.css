@@ -1,0 +1,36 @@
+﻿    .card {
+        transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 25px 40px -12px rgba(0,0,0,0.2) !important;
+    }
+    .list-group-item {
+        background: transparent;
+        transition: background 0.2s;
+        border-bottom: 1px solid #f0f2f5 !important;
+    }
+    .list-group-item:hover {
+        background: #f8fafc;
+    }
+    .btn-outline-primary:hover {
+        background: #6c47ff;
+        border-color: #6c47ff;
+        color: white;
+    }
+    @media (max-width: 768px) {
+        .display-5 { font-size: 1.8rem; }
+        .card-body { padding: 1.2rem; }
+    }
+
+/* ===== ENHANCED RESPONSIVE - SALES ANALYTICS ===== */
+@media (max-width: 768px) {
+    .container { padding-left: 12px !important; padding-right: 12px !important; }
+    .row.g-4.mb-5 { margin-bottom: 1.5rem !important; }
+    .col-md-6 { margin-bottom: 12px; }
+    canvas { max-height: 250px !important; }
+}
+@media (max-width: 480px) {
+    h2.display-6 { font-size: 1.3rem !important; }
+    .form-select { font-size: 12px; padding: 0.4rem 0.8rem; }
+}

@@ -1,0 +1,660 @@
+﻿    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .receipt-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .receipt-card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Store Header */
+    .store-header {
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px dashed #eef2f6;
+    }
+
+    .store-name {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .store-name i {
+        color: #6c47ff;
+        margin-right: 10px;
+    }
+
+    .store-details {
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .store-details p {
+        margin-bottom: 3px;
+    }
+
+    .store-details i {
+        color: #6c47ff;
+        width: 20px;
+        margin-right: 5px;
+    }
+
+    /* Receipt Title */
+    .receipt-title {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .receipt-title h2 {
+        color: #10b981;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .receipt-title h2 i {
+        margin-right: 8px;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 11px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .info-label i {
+        color: #6c47ff;
+        margin-right: 5px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .info-value.receipt-id {
+        color: #6c47ff;
+        font-size: 18px;
+        font-family: monospace;
+    }
+
+    .role-badge {
+        font-size: 10px;
+        color: #6c47ff;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+        display: inline-block;
+    }
+
+    /* Items Table */
+    .items-table {
+        margin-bottom: 25px;
+    }
+
+    .items-header {
+        display: grid;
+        grid-template-columns: 2fr 0.8fr 1fr 1fr;
+        padding: 12px 15px;
+        background: linear-gradient(135deg, #6c47ff, #4f2fe8);
+        color: white;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .item-row {
+        display: grid;
+        grid-template-columns: 2fr 0.8fr 1fr 1fr;
+        padding: 10px 15px;
+        border-bottom: 1px solid #eef2f6;
+        font-size: 13px;
+        transition: background 0.3s;
+    }
+
+    .item-row:hover {
+        background: #f8fafc;
+    }
+
+    .item-name {
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .item-qty, .item-price {
+        color: #6b7280;
+        text-align: center;
+    }
+
+    .item-total {
+        font-weight: 600;
+        color: #10b981;
+        text-align: right;
+    }
+
+    /* Payment Dual Card */
+    .payment-dual-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .payment-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .payment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .payment-card.amount-paid {
+        border: 2px solid #10b981;
+        background: #ecfdf5;
+    }
+
+    .payment-card.change-due {
+        border: 2px solid #f59e0b;
+        background: #fffbeb;
+    }
+
+    .payment-card-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .payment-card.amount-paid .payment-card-label {
+        color: #10b981;
+    }
+
+    .payment-card.change-due .payment-card-label {
+        color: #f59e0b;
+    }
+
+    .payment-card-value {
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .payment-card.amount-paid .payment-card-value {
+        color: #10b981;
+    }
+
+    .payment-card.change-due .payment-card-value {
+        color: #f59e0b;
+    }
+
+    /* Loyalty Points Banner */
+    .loyalty-banner {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-radius: 12px;
+        padding: 12px 15px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .loyalty-banner i {
+        font-size: 24px;
+        color: #d97706;
+    }
+
+    .loyalty-banner span {
+        font-weight: 600;
+        color: #92400e;
+    }
+
+    /* Summary Section */
+    .summary-section {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        color: #1f2937;
+        font-size: 14px;
+    }
+
+    .summary-row.total {
+        border-top: 2px dashed #cbd5e1;
+        margin-top: 8px;
+        padding-top: 15px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #10b981;
+    }
+
+    .summary-label {
+        font-weight: 500;
+    }
+
+    .summary-label i {
+        color: #6c47ff;
+        margin-right: 8px;
+        width: 20px;
+    }
+
+    .summary-value {
+        font-weight: 600;
+    }
+
+    /* Digital Actions */
+    .digital-actions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .btn-digital {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-whatsapp {
+        background: #25D366;
+        color: white;
+    }
+
+    .btn-whatsapp:hover {
+        background: #128C7E;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-email {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-email:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #6c47ff, #4f2fe8);
+        color: white;
+    }
+
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        color: white;
+    }
+
+    /* QR Code Section */
+    .qr-section {
+        text-align: center;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 16px;
+        margin-bottom: 25px;
+    }
+
+    .qr-code {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 10px;
+        background: white;
+        padding: 10px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .qr-code i {
+        font-size: 80px;
+        color: #6c47ff;
+    }
+
+    .qr-section p {
+        font-size: 11px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    /* Thank You */
+    .thank-you {
+        text-align: center;
+        margin: 20px 0;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 16px;
+    }
+
+    .thank-you i {
+        font-size: 40px;
+        color: #ef4444;
+        margin-bottom: 10px;
+    }
+
+    .thank-you h4 {
+        color: #1f2937;
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
+
+    .thank-you p {
+        color: #6b7280;
+        font-size: 13px;
+        margin: 0;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-pos {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-pos:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-dashboard {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-dashboard:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* Toast Notification */
+    .toast-notification {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        padding: 12px 20px;
+        border-radius: 40px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 1000;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    @media (max-width: 576px) {
+        .receipt-card { padding: 20px; }
+        .info-grid { grid-template-columns: 1fr; gap: 10px; }
+        .items-header, .item-row { font-size: 11px; padding: 8px; }
+        .payment-dual-card { grid-template-columns: 1fr; }
+        .digital-actions { flex-direction: column; }
+        .action-buttons { flex-direction: column; }
+        .btn-action { width: 100%; justify-content: center; }
+    }
+
+    /* ==================== THERMAL PRINT CSS - 80mm Standard Size ==================== */
+    @media print {
+        @page {
+            size: 80mm auto;
+            margin: 2mm;
+        }
+
+        nav, .navbar, .sidebar, .btn-digital, .digital-actions,
+        .btn-print, .btn-action, .action-buttons, .qr-section,
+        .btn-success, .btn-secondary, header, footer,
+        .modal, .modal-overlay, .toast-notification,
+        .btn-pos, .btn-dashboard, .payment-card.amount-paid,
+        .payment-card.change-due, .payment-dual-card,
+        .loyalty-banner, .qr-code, .qr-section {
+            display: none !important;
+        }
+
+        body * {
+            visibility: hidden !important;
+        }
+        
+        .receipt-wrapper, .receipt-card, .receipt-card * {
+            visibility: visible !important;
+        }
+
+        .receipt-wrapper {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 !important;
+            padding: 2mm !important;
+            background: white !important;
+        }
+
+        .receipt-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 2mm !important;
+            margin: 0 !important;
+            background: white !important;
+            border-radius: 0 !important;
+        }
+
+        .store-name {
+            font-size: 12pt !important;
+            margin-bottom: 3px !important;
+        }
+        
+        .store-details {
+            font-size: 7pt !important;
+            line-height: 1.2 !important;
+        }
+        
+        .store-details p {
+            margin-bottom: 1px !important;
+        }
+        
+        .receipt-title h2 {
+            font-size: 10pt !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .info-grid {
+            padding: 5px !important;
+            gap: 5px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .info-label {
+            font-size: 6pt !important;
+        }
+        
+        .info-value {
+            font-size: 8pt !important;
+        }
+        
+        .info-value.receipt-id {
+            font-size: 9pt !important;
+        }
+        
+        .role-badge {
+            font-size: 6pt !important;
+        }
+        
+        .items-header {
+            padding: 4px 6px !important;
+            font-size: 7pt !important;
+            margin-bottom: 4px !important;
+        }
+        
+        .item-row {
+            padding: 4px 6px !important;
+            font-size: 7pt !important;
+        }
+        
+        .item-name, .item-qty, .item-price, .item-total {
+            font-size: 7pt !important;
+        }
+        
+        .summary-section {
+            padding: 8px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .summary-row {
+            padding: 3px 0 !important;
+            font-size: 8pt !important;
+        }
+        
+        .summary-row.total {
+            padding-top: 5px !important;
+            margin-top: 3px !important;
+            font-size: 10pt !important;
+        }
+        
+        .summary-label, .summary-value {
+            font-size: 8pt !important;
+        }
+        
+        .thank-you {
+            padding: 8px !important;
+            margin: 8px 0 !important;
+        }
+        
+        .thank-you i {
+            font-size: 16px !important;
+        }
+        
+        .thank-you h4 {
+            font-size: 9pt !important;
+            margin-bottom: 2px !important;
+        }
+        
+        .thank-you p {
+            font-size: 7pt !important;
+        }
+        
+        .receipt-card, .store-header, .items-table, .summary-section, .thank-you {
+            page-break-inside: avoid !important;
+        }
+        
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
+
+/* ===== ENHANCED RESPONSIVE - RECEIPT ===== */
+@media (max-width: 768px) {
+    .receipt-wrapper { padding: 10px; }
+    .receipt-card { border-radius: 16px !important; padding: 16px 14px !important; }
+    .receipt-header h2 { font-size: 18px; }
+    .receipt-actions { flex-direction: column; gap: 8px; }
+    .receipt-actions button, .receipt-actions a { width: 100%; text-align: center; justify-content: center; }
+    .receipt-table { font-size: 12px; }
+    .receipt-table th, .receipt-table td { padding: 7px 8px; }
+    .receipt-totals { font-size: 13px; }
+}
+@media (max-width: 480px) {
+    .receipt-card { padding: 12px 10px !important; }
+}

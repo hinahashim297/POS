@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Shift Reports — SmartSale{% endblock %}
+
+{% block head %}
+<style>
+.sr-wrapper { max-width: 1200px; margin: 0 auto; padding: 4px 0 30px; }
+
+.sr-header { display: flex; align-items: center; gap: 16px; margin-bottom: 26px; }
+.sr-header-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #6c47ff, #4f2fe8);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 22px; box-shadow: 0 4px 14px rgba(108,71,255,.35); flex-shrink: 0;
+}
+.sr-header-text h2 { font-size: 22px; font-weight: 800; color: #1a1d2e; margin: 0 0 2px; }
+.sr-header-text p  { font-size: 13px; color: #64748b; margin: 0; font-weight: 600; }
+
+.sr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 26px; }
+.sr-stat {
+    border-radius: 14px; padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 14px rgba(15,36,65,.08);
+    color: white;
+}
+.sr-stat.purple { background: linear-gradient(135deg,#1a1d2e,#6c47ff); }
+.sr-stat.green  { background: linear-gradient(135deg,#064e3b,#00c48c); }
+.sr-stat.red    { background: linear-gradient(135deg,#7f1d1d,#ff4d6a); }
+.sr-stat.gold   { background: linear-gradient(135deg,#92400e,#e8a020); }
+.sr-stat-icon { width: 44px; height: 44px; background: rgba(255,255,255,.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink:0; }
+.sr-stat-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing:1px; opacity:.8; margin-bottom:4px; }
+.sr-stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+
+.sr-card { background: #fff; border-radius: 16px; border: 1px solid #d1dce8; box-shadow: 0 2px 16px rgba(15,36,65,.07); overflow: hidden; }
+.sr-card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 22px; border-bottom: 2px solid #eef2f8; background: #f8faff; flex-wrap: wrap; gap: 10px; }
+.sr-card-title { font-size: 15px; font-weight: 800; color: #1a1d2e; display: flex; align-items: center; gap: 8px; }
+.sr-card-title i { color: #6c47ff; }
+
+.sr-search { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #d1dce8; border-radius: 8px; padding: 7px 13px; width: 240px; }
+.sr-search input { border: none; outline: none; background: transparent; font-size: 13px; font-family: 'Inter',sans-serif; color: #1e2d40; width: 100%; }
+
+.sr-table-wrap { overflow-x: auto; }
+.sr-table { width: 100%; border-collapse: collapse; }
+.sr-table thead th { padding: 12px 16px; background: #f1f5fb; font-size: 11px; font-weight: 800; color: #6c47ff; text-transform: uppercase; letter-spacing:.6px; border-bottom: 2px solid #d1dce8; white-space: nowrap; }
+.sr-table tbody tr { border-bottom: 1px solid #eef2f8; transition: background .15s; }
+.sr-table tbody tr:hover { background: #f8faff; }
+.sr-table tbody tr:last-child { border-bottom: none; }
+.sr-table td { padding: 12px 16px; font-size: 13px; color: #1e2d40; vertical-align: middle; }
+
+.badge-ok       { background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+.badge-warning  { background: #fef3c7; color: #b45309; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+.badge-large    { background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+
+.cashier-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; background: #eef2f8; border-radius: 6px; font-size: 12px; font-weight: 700; color: #1a1d2e; }
+.cashier-pill i { color: #6c47ff; font-size: 10px; }
+
+.diff-pos { color: #15803d; font-weight: 700; }
+.diff-neg { color: #b91c1c; font-weight: 700; }
+
+.empty-state { text-align: center; padding: 50px; color: #94a3b8; font-weight: 700; }
+
+@media (max-width: 768px) {
+    .sr-stats { grid-template-columns: 1fr 1fr; }
+    .sr-search { width: 100%; }
+    .sr-card-header { flex-direction: column; align-items: flex-start; }
+    .sr-table th, .sr-table td { padding: 8px 10px; font-size: 12px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sr-wrapper">
+
+    <div class="sr-header">
+        <div class="sr-header-icon"><i class="fas fa-cash-register"></i></div>
+        <div class="sr-header-text">
+            <h2>Shift Reports</h2>
+            <p>All cashier shift closure records with cash tally details.</p>
+        </div>
+    </div>
+
+    {% set ok_count      = reports | selectattr('status','eq','ok') | list | length %}
+    {% set warn_count    = reports | selectattr('status','eq','warning') | list | length %}
+    {% set large_count   = reports | selectattr('status','eq','large_variance') | list | length %}
+    {% set total_sales   = reports | sum(attribute='system_sales') %}
+
+    <div class="sr-stats">
+        <div class="sr-stat purple">
+            <div class="sr-stat-icon"><i class="fas fa-list-check"></i></div>
+            <div>
+                <div class="sr-stat-label">Total Shifts</div>
+                <div class="sr-stat-value">{{ reports|length }}</div>
+            </div>
+        </div>
+        <div class="sr-stat green">
+            <div class="sr-stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="sr-stat-label">Tally OK</div>
+                <div class="sr-stat-value">{{ ok_count }}</div>
+            </div>
+        </div>
+        <div class="sr-stat red">
+            <div class="sr-stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <div>
+                <div class="sr-stat-label">Variances</div>
+                <div class="sr-stat-value">{{ warn_count + large_count }}</div>
+            </div>
+        </div>
+        <div class="sr-stat gold">
+            <div class="sr-stat-icon"><i class="fas fa-coins"></i></div>
+            <div>
+                <div class="sr-stat-label">Total Sales</div>
+                <div class="sr-stat-value" style="font-size:16px;">PKR {{ "{:,.0f}".format(total_sales) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sr-card">
+        <div class="sr-card-header">
+            <div class="sr-card-title"><i class="fas fa-table"></i> Shift Closure History</div>
+            <div class="sr-search">
+                <i class="fas fa-search" style="color:#64748b;font-size:13px;"></i>
+                <input type="text" id="srSearch" placeholder="Search cashier or date...">
+            </div>
+        </div>
+        <div class="sr-table-wrap">
+            <table class="sr-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cashier</th>
+                        <th>Date & Time</th>
+                        <th>System Sales</th>
+                        <th>Cash in Drawer</th>
+                        <th>Difference</th>
+                        <th>Variance</th>
+                        <th>Transactions</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="srTableBody">
+                    {% for r in reports %}
+                    <tr>
+                        <td><span style="font-weight:800;color:#6c47ff;">#{{ r.id }}</span></td>
+                        <td>
+                            <span class="cashier-pill">
+                                <i class="fas fa-user-circle"></i>
+                                {{ r.cashier.username if r.cashier else 'Deleted' }}
+                            </span>
+                        </td>
+                        <td style="font-size:12px;color:#64748b;">
+                            {{ r.shift_date.strftime('%Y-%m-%d') }}<br>
+                            {{ r.shift_date.strftime('%I:%M %p') }}
+                        </td>
+                        <td><strong>PKR {{ "{:,.2f}".format(r.system_sales) }}</strong></td>
+                        <td><strong>PKR {{ "{:,.2f}".format(r.cash_in_drawer) }}</strong></td>
+                        <td>
+                            <span class="{{ 'diff-pos' if r.difference >= 0 else 'diff-neg' }}">
+                                {{ '+' if r.difference >= 0 else '' }}PKR {{ "{:,.2f}".format(r.difference) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="{{ 'diff-pos' if r.variance_percent >= 0 else 'diff-neg' }}">
+                                {{ '+' if r.variance_percent >= 0 else '' }}{{ "{:.2f}".format(r.variance_percent) }}%
+                            </span>
+                        </td>
+                        <td style="text-align:center;">{{ r.total_transactions }}</td>
+                        <td>
+                            {% if r.status == 'ok' %}
+                            <span class="badge-ok"><i class="fas fa-check"></i> OK</span>
+                            {% elif r.status == 'warning' %}
+                            <span class="badge-warning"><i class="fas fa-exclamation"></i> Warning</span>
+                            {% else %}
+                            <span class="badge-large"><i class="fas fa-triangle-exclamation"></i> Large Variance</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;color:#cbd5e1;"></i>
+                            No shift reports yet. Reports are saved when cashiers end their shift.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('srSearch').addEventListener('keyup', function() {
+    const val = this.value.toLowerCase();
+    document.querySelectorAll('#srTableBody tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

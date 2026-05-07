@@ -1,0 +1,220 @@
+﻿{% extends "base.html" %}
+
+{% block title %}POS System - Point of Sale{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!-- Html5-QRCode Library for Barcode Scanning -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pos.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="pos-container">
+    <div class="pos-header">
+        <div class="logo-area">
+            <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+            <div class="logo-text">
+                <h1>POS SYSTEM</h1>
+                <p>Point of Sale</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="pos-main">
+        <!-- LEFT PANEL -->
+        <div class="products-panel">
+            <div class="search-area">
+                <div class="search-wrapper">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search products..." onkeyup="loadProducts()">
+                    </div>
+                    <div class="barcode-box">
+                        <i class="fas fa-barcode"></i>
+                        <input type="text" id="barcodeInput" placeholder="Scan barcode manually..." onkeypress="if(event.key==='Enter') scanBarcode()">
+                    </div>
+                    <button class="scan-btn" onclick="openScanner()">
+                        <i class="bi bi-camera-fill"></i> Scan Camera
+                    </button>
+                </div>
+            </div>
+
+            <div class="categories-strip" id="categoriesContainer">
+                <button class="category-chip active" data-category="all" onclick="filterByCategory('all')">All</button>
+            </div>
+
+            <div class="products-list" id="productsContainer">
+                <div style="text-align: center; padding: 40px;">Loading products...</div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="cart-panel">
+            <div class="cart-header">
+                <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
+            </div>
+
+            <div class="cart-items" id="cartItems">
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Cart is empty</p>
+                    <small>Click on products to add</small>
+                </div>
+            </div>
+
+            <div class="cart-customer">
+                <label><i class="fas fa-user"></i> Customer</label>
+                <select id="customerSelect">
+                    <option value="">🚶 Walk-in Customer</option>
+                </select>
+            </div>
+
+            <div class="cart-discount">
+                <label><i class="fas fa-tag"></i> Discount</label>
+                <div class="discount-input">
+                    <input type="number" id="discountValue" placeholder="Discount amount" value="0" step="0.01" min="0" oninput="if(this.value<0) this.value=0">
+                </div>
+                <div class="discount-type">
+                    <label><input type="radio" name="discountType" value="fixed" checked> Fixed ({{ settings.currency_symbol if settings else 'PKR' }})</label>
+                    <label><input type="radio" name="discountType" value="percentage"> Percentage (%)</label>
+                </div>
+            </div>
+
+            <div class="cart-tax">
+                <label><i class="fas fa-percent"></i> Tax Rate (%)</label>
+                <div class="tax-input">
+                    <input type="number" id="taxRate" placeholder="Tax percentage" value="{{ settings.tax_rate if settings else 0 }}" step="0.01" min="0" oninput="if(this.value<0) this.value=0; calculateTotal();">
+                    <span>%</span>
+                </div>
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-line">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">{{ settings.currency_symbol if settings else 'PKR' }} 0.00</span>
+                </div>
+                <div class="summary-line" style="color: #10b981;">
+                    <span>Discount:</span>
+                    <span id="discountAmount">-{{ settings.currency_symbol if settings else 'PKR' }} 0.00</span>
+                </div>
+                <div class="summary-line" style="color: #f59e0b;">
+                    <span>Tax:</span>
+                    <span id="taxAmount">+{{ settings.currency_symbol if settings else 'PKR' }} 0.00</span>
+                </div>
+                <div class="summary-line total">
+                    <span>Total:</span>
+                    <span id="total">{{ settings.currency_symbol if settings else 'PKR' }} 0.00</span>
+                </div>
+                <button class="checkout-btn" onclick="openCheckoutModal()">
+                    <i class="fas fa-credit-card"></i> Checkout (F4)
+                </button>
+                <button class="clear-cart-btn" onclick="clearCart()">
+                    <i class="fas fa-trash-alt"></i> Clear Cart (ESC)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="shortcuts-bar">
+        <div class="shortcut"><kbd>F2</kbd> <span>Barcode Focus</span></div>
+        <div class="shortcut"><kbd>F4</kbd> <span>Checkout</span></div>
+        <div class="shortcut"><kbd>ESC</kbd> <span>Clear Cart</span></div>
+        <div class="shortcut"><kbd>Enter</kbd> <span>Add to Cart</span></div>
+    </div>
+</div>
+
+<!-- Scanner Modal -->
+<div id="scanner-modal">
+    <div class="scanner-header">
+        <h5><i class="bi bi-upc-scan"></i> Scan Barcode</h5>
+        <p>Place the barcode in the center of the camera</p>
+    </div>
+    <div id="reader-container">
+        <div id="reader"></div>
+        <div class="laser"></div>
+    </div>
+    <button class="btn btn-danger w-100 mt-3 rounded-pill" onclick="closeScanner()" style="padding: 10px; background: #dc2626; color: white; border: none; border-radius: 40px; cursor: pointer;">
+        <i class="bi bi-x-circle"></i> Cancel
+    </button>
+</div>
+
+<!-- Checkout Modal - FIXED -->
+<div id="checkoutModal" class="checkout-overlay" style="display: none;">
+    <div class="checkout-modal">
+        <div class="amount-header">
+            <div class="total-label">Amount to Collect</div>
+            <div class="total-to-pay" id="modalTotalAmount">{{ settings.currency_symbol if settings else 'PKR' }} 0.00</div>
+        </div>
+
+        <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 14px;">Select Payment Method</h4>
+        <div class="payment-methods">
+            <div class="method-card" data-method="cash" onclick="selectPaymentMethod('cash')">
+                <i class="bi bi-cash-stack"></i>
+                <div><strong>Cash</strong><br><small>Physical {{ settings.currency_symbol if settings else 'PKR' }}</small></div>
+            </div>
+            <div class="method-card" data-method="easypaisa" onclick="selectPaymentMethod('easypaisa')">
+                <i class="bi bi-phone"></i>
+                <div><strong>EasyPaisa</strong><br><small>Mobile Wallet</small></div>
+            </div>
+            <div class="method-card" data-method="jazzcash" onclick="selectPaymentMethod('jazzcash')">
+                <i class="bi bi-wallet2"></i>
+                <div><strong>JazzCash</strong><br><small>Mobile Wallet</small></div>
+            </div>
+            <div class="method-card" data-method="card" onclick="selectPaymentMethod('card')">
+                <i class="bi bi-credit-card"></i>
+                <div><strong>Bank Card</strong><br><small>Visa/Master</small></div>
+            </div>
+        </div>
+
+        <div id="qrSection" style="display: none;">
+            <div style="text-align: center; background: #f1f5f9; padding: 16px; border-radius: 20px;">
+                <i class="bi bi-qr-code" style="font-size: 80px; color: #6c47ff;"></i>
+                <p style="font-size: 12px; margin-top: 10px;">Scan QR code to pay via <span id="qrProviderName">Wallet</span></p>
+            </div>
+        </div>
+
+        <div class="payment-input-group" id="cashSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <span style="font-weight: 600;">Cash Received:</span>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 20px; font-weight: 700;">{{ settings.currency_symbol if settings else 'PKR' }}</span>
+                    <input type="number" id="receivedAmount" class="pay-input" placeholder="0.00" value="0" step="0.01" oninput="calculateChange()">
+                </div>
+            </div>
+            <!-- ✅ NEGATIVE VAULT ERROR MESSAGE -->
+            <div id="negativeError" class="negative-error">❌ Amount cannot be negative!</div>
+            <div class="change-display">
+                <span>Return Change:</span>
+                <span id="changeAmount">{{ settings.currency_symbol if settings else 'PKR' }} 0.00</span>
+            </div>
+        </div>
+
+        <div id="digitalSection" class="digital-payment-section" style="display: none;">
+            <div class="txn-header">
+                <span><i class="bi bi-hash"></i> Transaction ID:</span>
+                <span class="txn-required">Required</span>
+            </div>
+            <div class="txn-input-wrapper">
+                <i class="bi bi-receipt"></i>
+                <input type="text" id="transactionId" placeholder="e.g., EP123456789" autocomplete="off">
+            </div>
+        </div>
+
+        <button class="complete-btn-modal" id="completeTransactionBtn" onclick="confirmTransaction()">
+            <i class="bi bi-check-circle"></i> COMPLETE TRANSACTION (F10)
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const currencySymbol = '{{ settings.currency_symbol if settings else "PKR" }}';
+const defaultTaxRate = {{ settings.tax_rate if settings else 0 }};
+</script>
+<script src="{{ url_for('static', filename='js/pos_page.js') }}"></script>
+{% endblock %}

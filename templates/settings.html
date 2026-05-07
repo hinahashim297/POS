@@ -1,0 +1,182 @@
+﻿{% extends "base.html" %}
+
+{% block title %}System Settings — POS{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="settings-header">
+        <h2><i class="fas fa-cog me-2"></i>System Settings</h2>
+        <p>Manage your account, store information, and preferences</p>
+    </div>
+    <div class="row">
+        <!-- Sidebar Tabs -->
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 24px; overflow: hidden;">
+                <div class="list-group list-group-flush" id="settings-tabs" role="tablist">
+                    <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#personal" role="tab">
+                        <i class="fas fa-user-circle me-2"></i> Personal
+                    </a>
+                    {% if current_user.is_admin() or current_user.is_manager() %}
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#store" role="tab">
+                        <i class="fas fa-store me-2"></i> Store Information
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#inventory" role="tab">
+                        <i class="fas fa-boxes me-2"></i> Inventory & Tax
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#preferences" role="tab">
+                        <i class="fas fa-palette me-2"></i> Preferences
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm" style="border-radius: 24px;">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <!-- Success Message Container -->
+                    <div id="successMessage" style="display: none; margin-bottom: 20px; padding: 12px 20px; background: linear-gradient(135deg, #6c47ff, #4f2fe8); color: white; border-radius: 12px; text-align: center;">
+                        <i class="fas fa-check-circle me-2"></i> Settings saved successfully! Page will refresh...
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('settings') }}" id="settingsForm">
+                        <div class="tab-content">
+                            
+                            <!-- ========== TAB 1: PERSONAL (All users) ========== -->
+                            <div class="tab-pane fade show active" id="personal" role="tabpanel">
+                                <h4 class="fw-bold mb-4"><i class="fas fa-lock text-primary me-2"></i>Account Security</h4>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Username</label>
+                                    <input type="text" class="form-control bg-light" value="{{ current_user.username }}" readonly>
+                                    <div class="form-text">Username cannot be changed.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Current Password</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="current_password" id="currentPass" class="form-control" placeholder="Enter current password">
+                                        <span class="position-absolute end-0 top-50 translate-middle-y me-3" 
+                                              onclick="togglePassword('currentPass', 'currentIcon')" 
+                                              style="cursor: pointer; color: #6c47ff;">
+                                            <i class="fas fa-eye" id="currentIcon"></i>
+                                        </span>
+                                    </div>
+                                    <div class="form-text">Required to change password.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">New Password</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="new_password" id="newPass" class="form-control" placeholder="Enter new password">
+                                        <span class="position-absolute end-0 top-50 translate-middle-y me-3" 
+                                              onclick="togglePassword('newPass', 'newIcon')" 
+                                              style="cursor: pointer; color: #6c47ff;">
+                                            <i class="fas fa-eye" id="newIcon"></i>
+                                        </span>
+                                    </div>
+                                    <div class="form-text">Minimum 6 characters. Leave blank to keep current password.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Confirm New Password</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="confirm_password" id="confirmPass" class="form-control" placeholder="Confirm new password">
+                                        <span class="position-absolute end-0 top-50 translate-middle-y me-3" 
+                                              onclick="togglePassword('confirmPass', 'confirmIcon')" 
+                                              style="cursor: pointer; color: #6c47ff;">
+                                            <i class="fas fa-eye" id="confirmIcon"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle me-2"></i> Change your password regularly to keep your account secure.
+                                </div>
+                            </div>
+
+                            {% if current_user.is_admin() or current_user.is_manager() %}
+                            <!-- ========== TAB 2: STORE INFORMATION ========== -->
+                            <div class="tab-pane fade" id="store" role="tabpanel">
+                                <h4 class="fw-bold mb-4"><i class="fas fa-building text-primary me-2"></i>Store Details</h4>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Store Name</label>
+                                    <input type="text" name="store_name" id="store_name" class="form-control" value="{{ settings.store_name if settings else 'My POS Store' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Store Address</label>
+                                    <textarea name="store_address" id="store_address" class="form-control" rows="3">{{ settings.store_address if settings else '' }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Store Phone</label>
+                                    <input type="text" name="store_phone" id="store_phone" class="form-control" value="{{ settings.store_phone if settings else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Currency Symbol</label>
+                                    <input type="text" name="currency_symbol" id="currency_symbol" class="form-control" value="{{ settings.currency_symbol if settings else 'PKR' }}" maxlength="5">
+                                    <div class="form-text">Example: $, â‚¨, â‚¬, Â£, PKR</div>
+                                </div>
+                            </div>
+
+                            <!-- ========== TAB 3: INVENTORY & TAX ========== -->
+                            <div class="tab-pane fade" id="inventory" role="tabpanel">
+                                <h4 class="fw-bold mb-4"><i class="fas fa-chart-line text-primary me-2"></i>Inventory & Tax Settings</h4>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Low Stock Alert Limit</label>
+                                    <input type="number" name="low_stock_limit" id="low_stock_limit" class="form-control" value="{{ settings.low_stock_limit if settings else 5 }}" min="0">
+                                    <div class="form-text">Products with quantity below this number will show a "Low Stock" warning.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Tax Rate (%)</label>
+                                    <input type="number" step="0.01" name="tax_rate" id="tax_rate" class="form-control" value="{{ settings.tax_rate if settings else 0 }}">
+                                    <div class="form-text">Default tax percentage applied to all sales (can be overridden at checkout).</div>
+                                </div>
+                            </div>
+
+                            <!-- ========== TAB 4: PREFERENCES ========== -->
+                            <div class="tab-pane fade" id="preferences" role="tabpanel">
+                                <h4 class="fw-bold mb-4"><i class="fas fa-sliders-h text-primary me-2"></i>System Preferences</h4>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="auto_receipt" id="autoReceipt" {% if settings and settings.auto_receipt %}checked{% endif %}>
+                                    <label class="form-check-label fw-semibold" for="autoReceipt">Auto-print Receipt after sale</label>
+                                    <div class="form-text">Automatically show receipt page after each transaction.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Theme</label>
+                                    <select name="theme" id="themeSelect" class="form-select">
+                                        <option value="light" {% if settings and settings.theme == 'light' %}selected{% endif %}>🌞 Light Mode</option>
+                                        <option value="dark" {% if settings and settings.theme == 'dark' %}selected{% endif %}>🌙 Dark Mode</option>
+                                    </select>
+                                    <div class="form-text text-success" id="themePreviewMsg">
+                                        <i class="fas fa-magic me-1"></i> Theme changes instantly!
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-5 pt-3 border-top">
+                            <button type="submit" id="saveSettingsBtn" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm">
+                                <i class="fas fa-save me-2"></i> Save All Settings
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill ms-2">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}
